@@ -3,12 +3,12 @@ interface Props {
 }
 
 const FEATURES = [
-  { icon: "\u{1F9EC}", title: "Structure Retrieval", desc: "Fetch from RCSB PDB & AlphaFold DB instantly" },
-  { icon: "\u{1F573}\u{FE0F}", title: "Pocket Detection", desc: "Geometry-based binding site identification" },
-  { icon: "\u{1F489}", title: "Molecular Docking", desc: "AutoDock Vina integration with RDKit prep" },
-  { icon: "\u{1F3A8}", title: "ChimeraX Viz", desc: "Headless rendering and scripted visualisation" },
-  { icon: "\u{1F916}", title: "AI-Powered", desc: "Claude reasons about your biology questions" },
-  { icon: "\u{1F30D}", title: "3D in Browser", desc: "Mol* viewer for interactive exploration" },
+  { icon: "\u{1F9EC}", title: "See Every Atom", desc: "Fetch structures from RCSB PDB & AlphaFold DB. View them in 3D instantly." },
+  { icon: "\u{1F573}\u{FE0F}", title: "Find Hidden Pockets", desc: "Geometry-based cavity detection — find the next Switch-II pocket" },
+  { icon: "\u{1F489}", title: "Dock Drug Candidates", desc: "AutoDock Vina + RDKit: SMILES in, binding energies out" },
+  { icon: "\u{1F52C}", title: "Mutate & Compare", desc: "Swap residues, compare wild-type vs mutant, see what changes" },
+  { icon: "\u{1F916}", title: "AI That Knows Biology", desc: "Claude cites real PDB codes, residue numbers, and mechanisms" },
+  { icon: "\u{1F4AC}", title: "Just Talk to It", desc: "\"Show me KRAS G12C and highlight the sotorasib binding site\"" },
 ];
 
 const SPONSORS = [
@@ -30,17 +30,22 @@ export default function LandingPage({ onEnter }: Props) {
         <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-bio-400 to-bio-200 bg-clip-text text-transparent">
           Proteosurf
         </h1>
-        <p className="text-lg text-gray-400 mb-2">AI-powered structural biology assistant</p>
+        <p className="text-lg text-gray-400 mb-2">Windsurf for Biology</p>
+        <p className="text-sm text-gray-500 max-w-lg mx-auto mb-4">
+          KRAS was &ldquo;undruggable&rdquo; for 40&nbsp;years &mdash; until a chemical biologist at UCSF
+          stared at atomic structures and found a hidden pocket. That discovery became
+          sotorasib, the first KRAS inhibitor ever approved.
+        </p>
         <p className="text-sm text-gray-500 max-w-lg mx-auto mb-8">
-          Chat with an AI that fetches protein structures, detects binding pockets,
-          docks ligands, narrates findings with natural voice, tracks experiments,
-          and connects drug targets to pharma markets.
+          Proteosurf gives that same power to anyone with a browser. Chat with proteins,
+          find binding pockets, dock drug candidates, and explore AlphaFold models &mdash;
+          all through natural language.
         </p>
         <button
           onClick={onEnter}
           className="px-8 py-3 bg-bio-600 hover:bg-bio-500 rounded-xl text-white font-semibold text-base transition-all hover:shadow-lg hover:shadow-bio-600/25 active:scale-95"
         >
-          Try it
+          Start Exploring
         </button>
       </div>
 
@@ -71,7 +76,10 @@ export default function LandingPage({ onEnter }: Props) {
       </div>
 
       <p className="text-xs text-gray-600">
-        Built with FastMCP &middot; Claude &middot; Mol* &middot; ChimeraX &middot; AutoDock Vina
+        Built with FastMCP &middot; Claude &middot; Mol* &middot; ChimeraX &middot; AutoDock Vina &middot; AlphaFold
+      </p>
+      <p className="text-[10px] text-gray-700 mt-1">
+        Inspired by the KRAS breakthrough at UCSF &mdash; making structural biology accessible to everyone
       </p>
     </div>
   );

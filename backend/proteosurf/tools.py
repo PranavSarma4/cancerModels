@@ -308,6 +308,116 @@ def highlight_residues(
     return f"Script saved to {dest}\n\n{script}"
 
 
+def find_contacts(pdb_id: str, chain: str = "A", distance: float = 4.0, target: str = "ligand") -> str:
+    """Find binding contacts between a protein chain and ligands or another chain.
+
+    Identifies residues within a distance cutoff of the target, useful for
+    mapping binding interfaces (e.g. protein-drug contacts, protein-protein
+    interfaces, glycan-receptor contacts).
+
+    Args:
+        pdb_id: 4-character PDB identifier.
+        chain: Protein chain to analyze (e.g. 'A').
+        distance: Contact distance cutoff in Angstroms (default 4.0).
+        target: What to find contacts with — 'ligand' for HETATM groups,
+                or a chain ID like 'B' for inter-chain contacts.
+    """
+    try:
+        path = download_pdb(pdb_id)
+    except (ValueError, FileNotFoundError, httpx.HTTPStatusError) as exc:
+        return f"Error: {exc}"
+
+    structure = parse_structure(path, pdb_id)
+    chain = chain.strip().upper()
+    model = next(structure.get_models())
+
+    if chain not in model:
+        available = sorted(c.id for c in model)
+        return f"Error: Chain '{chain}' not found. Available: {available}"
+
+    chain_obj = model[chain]
+    chain_atoms = list(chain_obj.get_atoms())
+
+    # Collect target atoms
+    target_atoms = []
+    if target.lower() == "ligand":
+        for c in model:
+            for res in c.get_residues():
+                het, _, _ = res.get_id()
+                if het.strip() and het.strip() != "W":
+                    target_atoms.extend(res.get_atoms())
+    else:
+        target_chain = target.strip().upper()
+        if target_chain not in model:
+            return f"Error: Target chain '{target_chain}' not found."
+        target_atoms = list(model[target_chain].get_atoms())
+
+    if not target_atoms:
+        label = "ligands/HETATM" if target.lower() == "ligand" else f"chain {target}"
+        return json.dumps({
+            "pdb_id": pdb_id.upper(), "chain": chain, "target": target,
+            "contacts_found": 0,
+            "message": f"No {label} atoms found in this structure."
+        })
+
+    ns = NeighborSearch(chain_atoms)
+
+    contacts: list[dict] = []
+    seen: set[tuple[str, int, str, int]] = set()
+
+    for target_atom in target_atoms:
+        target_res = target_atom.get_parent()
+        t_het, t_seq, _ = target_res.get_id()
+        t_chain = target_res.get_parent().id
+        t_name = target_res.get_resname().strip()
+
+        nearby = ns.search(target_atom.get_vector().get_array(), distance, level="A")
+        for atom in nearby:
+            res = atom.get_parent()
+            het, resseq, _ = res.get_id()
+            if het.strip() and het.strip() != "W":
+                continue
+            resname = res.get_resname().strip()
+            key = (resname, resseq, t_name, t_seq)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            d = float(np.linalg.norm(
+                np.array(atom.get_vector().get_array()) -
+                np.array(target_atom.get_vector().get_array())
+            ))
+            contacts.append({
+                "protein_residue": f"{chain}:{resname}{resseq}",
+                "protein_atom": atom.get_name(),
+                "target_residue": f"{t_chain}:{t_name}{t_seq}",
+                "target_atom": target_atom.get_name(),
+                "distance_A": round(d, 2),
+            })
+
+    contacts.sort(key=lambda c: c["distance_A"])
+
+    contact_residues = sorted({c["protein_residue"] for c in contacts})
+    import re
+    contact_resseqs = sorted({
+        int(m.group())
+        for c in contacts
+        if (m := re.search(r'\d+$', c["protein_residue"]))
+    })
+
+    return json.dumps({
+        "pdb_id": pdb_id.upper(),
+        "chain": chain,
+        "target": target,
+        "distance_cutoff_A": distance,
+        "contacts_found": len(contacts),
+        "unique_protein_residues": len(contact_residues),
+        "contact_residue_list": contact_residues,
+        "contact_residue_numbers": contact_resseqs,
+        "contacts": contacts[:100],
+    }, indent=2)
+
+
 def find_pockets(pdb_id: str, sensitivity: str = "normal") -> str:
     """Detect binding pockets using geometry-based burial analysis.
 

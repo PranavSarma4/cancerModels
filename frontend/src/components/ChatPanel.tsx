@@ -17,10 +17,12 @@ const STATUS_COLORS: Record<ConnectionStatus, string> = {
 };
 
 const EXAMPLES = [
-  "Show me the structure of insulin (PDB: 4INS)",
-  "Find binding pockets in hemoglobin (1HBS)",
-  "Fetch the AlphaFold prediction for human p53 (P04637)",
-  "List residues on chain A of crambin (1CRN)",
+  "Show me KRAS G12C bound to sotorasib (6OIM) and highlight the Switch-II pocket",
+  "Find druggable pockets in the EGFR kinase domain (1M17) — which ones could bind a small molecule?",
+  "Fetch the AlphaFold model for human BCL-2 (Q07817) and explain its role in apoptosis",
+  "Show me a glycoprotein binding Siglec-7 (2HRL) — highlight every sialic-acid contact residue",
+  "Compare wild-type p53 (2XWR) with a cancer hotspot mutant — what changes in the DNA-binding surface?",
+  "Dock imatinib (CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5) into BCR-ABL (1IEP)",
 ];
 
 export default function ChatPanel({ messages, status, isStreaming, onSend }: Props) {
@@ -66,9 +68,9 @@ export default function ChatPanel({ messages, status, isStreaming, onSend }: Pro
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-bio-600 to-bio-800 flex items-center justify-center text-3xl">
                 {"\u{1F9EC}"}
               </div>
-              <h2 className="text-lg font-semibold mb-1">Welcome to Proteosurf</h2>
+              <h2 className="text-lg font-semibold mb-1">Proteosurf</h2>
               <p className="text-sm text-gray-400 max-w-sm">
-                Ask me about protein structures, binding pockets, molecular docking, and more.
+                Windsurf for biology. Chat with proteins the way a mechanic dissects an engine — explore structures, find hidden pockets, dock drug candidates, and generate synthesis-ready molecules.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-2 w-full max-w-sm">
@@ -141,7 +143,7 @@ export default function ChatPanel({ messages, status, isStreaming, onSend }: Pro
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about a protein structure..."
+            placeholder="e.g. Show me the KRAS Switch-II pocket..."
             disabled={isStreaming}
             className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm placeholder-gray-500 focus:outline-none focus:border-bio-500 focus:ring-1 focus:ring-bio-500/30 disabled:opacity-50"
           />

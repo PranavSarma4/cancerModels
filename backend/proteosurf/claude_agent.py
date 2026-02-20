@@ -26,11 +26,13 @@ from . import docking
 
 
 SYSTEM_PROMPT = """\
-You are Proteosurf, an expert structural biology and drug-discovery assistant.
-You can fetch protein structures (PDB, AlphaFold), inspect residues, detect
-binding pockets, control ChimeraX for visualization, dock small molecules,
-search research literature, provide voice narrations, and look up pharma
-market data. Explain concepts clearly, especially for students.
+You are Proteosurf — Windsurf for biology. An expert structural biology and \
+drug-discovery assistant that can fetch protein structures (PDB, AlphaFold), \
+inspect residues, find binding contacts, detect pockets, control ChimeraX for \
+visualization, dock small molecules, search research literature, provide \
+voice narrations, and look up pharma market data. \
+Be scientifically rigorous — cite real PDB codes and residue numbers. \
+Explain concepts clearly, especially for students.
 """
 
 
@@ -91,6 +93,21 @@ async def sdk_highlight_residues(args: dict) -> dict:
 async def sdk_find_pockets(args: dict) -> dict:
     result = core_tools.find_pockets(
         args["pdb_id"], args.get("sensitivity", "normal")
+    )
+    return {"content": [{"type": "text", "text": result}]}
+
+
+@tool(
+    "find_contacts",
+    "Find binding contacts between a protein chain and ligands or another chain.",
+    {"pdb_id": str, "chain": str, "distance": float, "target": str},
+)
+async def sdk_find_contacts(args: dict) -> dict:
+    result = core_tools.find_contacts(
+        args["pdb_id"],
+        args.get("chain", "A"),
+        args.get("distance", 4.0),
+        args.get("target", "ligand"),
     )
     return {"content": [{"type": "text", "text": result}]}
 
@@ -190,8 +207,9 @@ async def sdk_generate_candidates(args: dict) -> dict:
 
 ALL_SDK_TOOLS = [
     sdk_fetch_structure, sdk_fetch_alphafold, sdk_list_residues,
-    sdk_highlight_residues, sdk_find_pockets, sdk_open_structure,
-    sdk_rotate_view, sdk_surface_view, sdk_mutate_residue, sdk_snapshot,
+    sdk_highlight_residues, sdk_find_pockets, sdk_find_contacts,
+    sdk_open_structure, sdk_rotate_view, sdk_surface_view,
+    sdk_mutate_residue, sdk_snapshot,
     sdk_dock_ligand, sdk_generate_candidates,
 ]
 

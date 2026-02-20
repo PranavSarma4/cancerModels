@@ -1,6 +1,8 @@
-# Proteosurf
+# Proteosurf — Windsurf for Biology
 
-AI-powered structural biology assistant. Chat in natural language to fetch protein structures, detect binding pockets, dock small molecules, hear voice narrations, track experiments, search literature, and connect drug targets to pharma markets.
+1,600 people die of cancer every day. KRAS was "undruggable" for 40 years until a chemical biologist at UCSF stared at atomic structures and found a hidden pocket in the GDP-bound Switch-II region. That discovery became sotorasib — the first KRAS inhibitor ever approved.
+
+**Proteosurf gives that power to anyone with a browser.** Chat in natural language to fetch protein structures, find binding pockets, map drug contacts, dock small molecules, explore AlphaFold models, hear voice narrations, track experiments, search literature, and connect drug targets to pharma markets.
 
 ![MCP](https://img.shields.io/badge/MCP-FastMCP-brightgreen) ![Python](https://img.shields.io/badge/python-3.10+-blue) ![React](https://img.shields.io/badge/react-18-61dafb) ![License](https://img.shields.io/badge/license-MIT-gray)
 
@@ -12,7 +14,7 @@ Proteosurf integrates **7 sponsor technologies** for a complete structural biolo
 
 | Sponsor | Integration | What It Does |
 |---------|-------------|--------------|
-| **Claude Agent SDK** | `claude_agent.py` | Native MCP tool orchestration with `@tool` decorator and `ClaudeSDKClient` — all 24 tools registered as in-process MCP tools |
+| **Claude Agent SDK** | `claude_agent.py` | Native MCP tool orchestration with `@tool` decorator and `ClaudeSDKClient` — all 25 tools registered as in-process MCP tools |
 | **ElevenLabs** | `voice.py` | Converts protein analysis into natural-sounding voice narration via streaming TTS. Play audio inline in the chat |
 | **Databricks** | `databricks_analytics.py` | MLflow experiment tracking for docking runs and protein analyses. Query historical results to compare binding affinities |
 | **NVIDIA Nemotron** | `nemotron.py` | Protein literature summarization and structure comparison using Nemotron-70B via NVIDIA's OpenAI-compatible API |
@@ -30,7 +32,7 @@ Proteosurf integrates **7 sponsor technologies** for a complete structural biolo
 │                  │                      │                                    │
 │  Mol* 3D viewer  │   REST /api/pdb/:id  │  ProteoAgent (Claude orchestrator) │
 │  Chat + audio    │◄────────────────────►│  ┌──────────────────────────────┐  │
-│  Tool cards      │   REST /api/narrate  │  │  24 MCP Tools               │  │
+│  Tool cards      │   REST /api/narrate  │  │  25 MCP Tools               │  │
 │  Landing page    │◄────────────────────►│  │                              │  │
 └──────────────────┘                      │  │  Core: fetch, list, pockets  │  │
                                           │  │  ChimeraX: open, rotate, snap│  │
@@ -48,7 +50,7 @@ Proteosurf integrates **7 sponsor technologies** for a complete structural biolo
 
 ---
 
-## All 24 Tools
+## All 25 Tools
 
 ### Core Structural Biology
 | Tool | Description |
@@ -58,6 +60,7 @@ Proteosurf integrates **7 sponsor technologies** for a complete structural biolo
 | `list_residues(pdb_id, chain)` | Enumerate residues with types |
 | `highlight_residues(pdb_id, residues, color, chain)` | Generate ChimeraX `.cxc` script |
 | `find_pockets(pdb_id, sensitivity)` | Grid-based pocket detection |
+| `find_contacts(pdb_id, chain, distance, target)` | Binding contact analysis (protein-ligand, protein-protein, glycan-receptor) |
 
 ### ChimeraX Visualization
 | Tool | Description |
@@ -192,22 +195,30 @@ See `.env.example` for the full list.
 ## Example Workflows
 
 ```
-User: Show me the structure of insulin and explain it
-→ fetch_structure("4INS")                    # fetches PDB
-→ summarize_protein("4INS", focus="general") # Nemotron summary
-→ narrate_analysis("Insulin is a...")        # ElevenLabs voice
-→ loads 4INS in Mol* viewer
+User: Show me KRAS G12C and find the Switch-II pocket
+→ fetch_structure("4LDJ")                         # KRAS G12C GDP-bound, 1.15Å
+→ find_pockets("4LDJ", sensitivity="high")        # detect the S-IIP
+→ highlight_residues("4LDJ", [58,59,60,...72])     # color switch-II loop
+→ summarize_protein("4LDJ", focus="drug_target")  # Nemotron explains druggability
+→ loads 4LDJ in Mol* viewer
 
-User: Find druggable pockets in hemoglobin and check the market
-→ find_pockets("1HBS")                      # pocket detection
-→ pharma_market_intel("1HBS")               # TrueMarket data
-→ search_protein_research("hemoglobin drug target", "1HBS") # Nia search
-→ log_protein_analysis("1HBS", "pocket_detection", ...) # Databricks
+User: How does sotorasib bind KRAS?
+→ fetch_structure("6OIM")                          # KRAS G12C + sotorasib co-crystal
+→ find_contacts("6OIM", chain="A", target="ligand")  # maps drug-protein contacts
+→ highlight_residues("6OIM", contact_residues)     # highlight binding interface
+→ narrate_analysis("Sotorasib binds covalently to Cys12 in the Switch-II pocket...")
 
-User: Dock aspirin into COX-2
-→ dock_ligand("5KIR", "CC(=O)OC1=CC=CC=C1C(=O)O", ...)
-→ log_docking_experiment("5KIR", "CC(=O)...", -6.2)  # MLflow
-→ narrate_analysis("The docking results show...")      # voice
+User: Find druggable pockets in EGFR and check the pharma market
+→ fetch_structure("1M17")                          # EGFR kinase + erlotinib
+→ find_pockets("1M17")                             # detect binding sites
+→ pharma_market_intel("1M17")                      # TrueMarket pipeline data
+→ search_protein_research("EGFR kinase inhibitor resistance", "1M17") # Nia literature
+→ log_protein_analysis("1M17", "pocket_detection", ...) # Databricks tracking
+
+User: Dock imatinib into BCR-ABL
+→ dock_ligand("1IEP", "CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5")
+→ log_docking_experiment("1IEP", "CC1=C...", -8.7)   # MLflow tracking
+→ narrate_analysis("Imatinib binds the ABL kinase domain with...")  # ElevenLabs
 ```
 
 ---
@@ -219,7 +230,7 @@ User: Dock aspirin into COX-2
 | Best Overall Hack | Full-stack AI + biology + 7 sponsor integrations |
 | Best AI Automation | ProteoAgent automates multi-step protein analysis workflows |
 | Best Consumer Track | Voice narration + beautiful UI makes biology accessible |
-| Best use of Claude Agent SDK | `claude_agent.py` — all 24 tools via `@tool` decorator |
+| Best use of Claude Agent SDK | `claude_agent.py` — all 25 tools via `@tool` decorator |
 | Best use of ElevenLabs | Voice narration of protein analysis with streaming TTS |
 | Best use of Databricks | MLflow experiment tracking for docking campaigns |
 | Best use of Nemotron | Protein summarization + structure comparison via Nemotron-70B |
@@ -253,7 +264,7 @@ proteosurf/
 │       ├── nia_search.py          # Nia research paper search
 │       ├── agent.py               # ProteoAgent (Claude orchestrator)
 │       ├── claude_agent.py        # Claude Agent SDK integration
-│       ├── mcp_server.py          # MCP server entry point (24 tools)
+│       ├── mcp_server.py          # MCP server entry point (25 tools)
 │       ├── app.py                 # FastAPI web app
 │       └── run_web.py             # Uvicorn entry point
 └── frontend/

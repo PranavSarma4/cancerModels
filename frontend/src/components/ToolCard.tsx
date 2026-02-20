@@ -7,6 +7,7 @@ const TOOL_ICONS: Record<string, string> = {
   list_residues: "\u{1F9EA}",
   highlight_residues: "\u{1F3A8}",
   find_pockets: "\u{1F573}\u{FE0F}",
+  find_contacts: "\u{1F91D}",
   open_structure: "\u{1F4C2}",
   rotate_view: "\u{1F504}",
   surface_view: "\u{1F30D}",

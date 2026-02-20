@@ -34,6 +34,7 @@ mcp.tool()(tools.fetch_alphafold)
 mcp.tool()(tools.list_residues)
 mcp.tool()(tools.highlight_residues)
 mcp.tool()(tools.find_pockets)
+mcp.tool()(tools.find_contacts)
 
 # --- ChimeraX tools ---
 mcp.tool()(chimerax_tools.open_structure)
