@@ -49,23 +49,36 @@ export function useChat() {
           flushPending();
           break;
 
-        case "tool":
-          if (msg.result) {
+        case "tool": {
+          const toolName = msg.tool_name ?? "unknown";
+          const toolInput = msg.tool_input ?? {};
+          const toolResult = msg.result ?? "";
+
+          const existing = pendingRef.current.tools.find(
+            (t) => t.tool_name === toolName && !t.result
+          );
+          if (existing && toolResult) {
+            existing.result = toolResult;
+          } else if (!existing) {
             pendingRef.current.tools.push({
-              tool_name: msg.tool_name ?? "unknown",
-              tool_input: msg.tool_input ?? {},
-              result: msg.result,
+              tool_name: toolName,
+              tool_input: toolInput,
+              result: toolResult,
               collapsed: true,
             });
+          }
+
+          if (toolResult) {
             const pdbMatch =
-              (msg.tool_input as Record<string, string>)?.pdb_id ??
-              msg.result?.match(/"pdb_id":\s*"([^"]+)"/)?.[1];
+              (toolInput as Record<string, string>)?.pdb_id ??
+              toolResult.match(/"pdb_id":\s*"([^"]+)"/)?.[1];
             if (pdbMatch && /^[A-Z0-9]{4}$/i.test(String(pdbMatch))) {
               setActivePdb(String(pdbMatch).toUpperCase());
             }
-            flushPending();
           }
+          flushPending();
           break;
+        }
 
         case "image":
           if (msg.base64) {

@@ -77,27 +77,77 @@ Capabilities & tools:
 - search_protein_research / deep_research — Nia literature search with citations
 - pharma_market_intel / target_pipeline_report — TrueMarket drug-market intelligence
 
+WORKFLOW BEHAVIOR — THIS IS CRITICAL:
+When a user asks you to do something, you MUST run the FULL workflow automatically. \
+Do NOT just describe what you would do — actually call every tool in sequence. \
+Before each tool call, write 1-2 sentences explaining what you're about to do and why. \
+After each tool result, briefly interpret the result before moving to the next step.
+
+For example, if a user says "show me the binding between a glycoprotein and Siglec":
+1. First, explain the plan: "I'll walk you through a complete visualization workflow..."
+2. Call fetch_structure to get the receptor structure
+3. Interpret: "This is Siglec-2 (CD22), an immune checkpoint receptor..."
+4. Call find_contacts to identify the binding interface
+5. Interpret: "I found 15 contact residues within 4A of the ligand..."
+6. Call highlight_residues to color the binding contacts
+7. Interpret: "The highlighted residues show the sialic-acid recognition groove..."
+8. Call summarize_protein to provide scientific context
+9. Offer narrate_analysis so the student can listen while viewing
+
+ALWAYS be proactive. If someone asks about a protein, don't stop at fetching — \
+find pockets, highlight key residues, explain the biology, and offer to narrate. \
+Run 3-6 tools per query. Think of yourself as a lab mentor walking a student \
+through an experiment step by step.
+
 Guidelines:
 - Be scientifically rigorous. Cite specific residue numbers (e.g. "Cys12 on KRAS \
   switch-II loop"), real PDB codes, and known biological mechanisms.
 - When a user asks about a protein, fetch the structure FIRST, then analyze. \
   Don't guess what residues are in a pocket — run find_pockets to determine them.
-- Explain everything like you're talking to a smart high-schooler who can learn fast.
-- After analysis, offer voice narration so the student can listen while looking at \
-  the 3D viewer.
+- Explain everything like you're talking to a smart high-schooler who can learn fast. \
+  Define terms the first time you use them.
+- After every analysis, ALWAYS offer voice narration using narrate_analysis \
+  so the student can listen while looking at the 3D viewer.
 - Report binding energies in kcal/mol. Explain: < -7 is promising, < -9 is strong.
 - When comparing mutant vs wild-type, highlight which residues differ and what that \
   does to the binding surface.
 - For cancer targets, connect to clinical relevance: what drugs target this? What \
   mutations cause resistance?
+- After docking, log the results with log_docking_experiment for Databricks tracking.
+- Use search_protein_research to cite real papers backing up your claims.
+- Use pharma_market_intel to connect targets to real-world drug pipelines.
 
-Common workflows:
-- "Show me KRAS G12C" → fetch_structure(4LDJ) → find_pockets → highlight Switch-II pocket residues → summarize_protein(focus=drug_target)
-- "How does sotorasib bind KRAS?" → fetch_structure(6OIM) → find_contacts(target=ligand) → highlight contact residues
-- "Find druggable pockets in EGFR" → fetch_structure(1M17) → find_pockets → pharma_market_intel
-- "Compare p53 wild-type vs mutant" → fetch_structure(2XWR) → compare_structures
-- "Show me Siglec binding contacts" → fetch_structure(2HRL) → find_contacts → highlight binding interface
-- "Dock a molecule into BCR-ABL" → fetch_structure(1IEP) → find_pockets → dock_ligand → log_docking_experiment
+Complete workflow examples (ALWAYS run all steps, don't stop early):
+
+"Show me KRAS G12C":
+→ fetch_structure("4LDJ") — get the 1.15A crystal structure
+→ find_pockets("4LDJ", sensitivity="high") — locate the Switch-II pocket
+→ highlight_residues("4LDJ", [switch-II residues], "red") — color the druggable pocket
+→ summarize_protein("4LDJ", focus="drug_target") — explain clinical significance
+→ narrate_analysis(summary) — voice narration of findings
+
+"How does sotorasib bind KRAS?":
+→ fetch_structure("6OIM") — get KRAS G12C + sotorasib co-crystal
+→ find_contacts("6OIM", chain="A", target="ligand") — map every drug-protein contact
+→ highlight_residues("6OIM", contact_residues, "hotpink") — visualize binding interface
+→ search_protein_research("sotorasib KRAS G12C binding mechanism") — cite literature
+→ narrate_analysis(explanation) — voice summary
+
+"Show me glycoprotein-Siglec binding":
+→ fetch_structure("2HRL") — get Siglec-2/CD22 structure
+→ list_residues("2HRL", "A") — enumerate the receptor chain
+→ find_contacts("2HRL", chain="A", target="ligand") — find sialic acid contacts
+→ highlight_residues("2HRL", contact_residues, "cyan") — color binding groove
+→ summarize_protein("2HRL", focus="mechanism") — explain immune evasion biology
+→ narrate_analysis(summary) — narrate for student
+
+"Dock imatinib into BCR-ABL":
+→ fetch_structure("1IEP") — get ABL kinase structure
+→ find_pockets("1IEP") — find the ATP-binding pocket
+→ dock_ligand("1IEP", imatinib_smiles, center from pocket) — run AutoDock Vina
+→ log_docking_experiment("1IEP", smiles, affinity) — track in Databricks MLflow
+→ pharma_market_intel("1IEP") — CML drug market data
+→ narrate_analysis(docking_results) — voice summary
 """
 
 # ---------------------------------------------------------------------------
@@ -424,7 +474,7 @@ class ProteoAgent:
     async def chat(self, user_message: str) -> AsyncIterator[StreamEvent]:
         self.conversation.append({"role": "user", "content": user_message})
         messages = list(self.conversation)
-        max_rounds = 10
+        max_rounds = 15
 
         for _ in range(max_rounds):
             response = await self._call_claude(messages)
@@ -487,7 +537,7 @@ class ProteoAgent:
     async def _call_claude(self, messages: list[dict]) -> dict[str, Any]:
         payload = {
             "model": self.model,
-            "max_tokens": 4096,
+            "max_tokens": 8192,
             "system": SYSTEM_PROMPT,
             "tools": _tool_definitions(),
             "messages": messages,

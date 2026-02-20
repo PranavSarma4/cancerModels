@@ -57,36 +57,48 @@ export default function ToolCard({ tool }: { tool: ToolResult }) {
   const icon = TOOL_ICONS[tool.tool_name] ?? "\u{1F527}";
   const badge = SPONSOR_BADGE[tool.tool_name];
   const inputStr = JSON.stringify(tool.tool_input, null, 2);
+  const isRunning = !tool.result;
 
   return (
-    <div className="my-2 rounded-lg border border-gray-700 bg-gray-800/60 overflow-hidden">
+    <div className={`my-2 rounded-lg border overflow-hidden ${isRunning ? "border-bio-700 bg-bio-900/20" : "border-gray-700 bg-gray-800/60"}`}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-gray-700/40 transition-colors"
       >
-        <span className="text-base">{icon}</span>
-        <span className="font-medium text-bio-400">{tool.tool_name}</span>
+        {isRunning ? (
+          <svg className="animate-spin h-4 w-4 text-bio-500 flex-shrink-0" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : (
+          <span className="text-base">{icon}</span>
+        )}
+        <span className={`font-medium ${isRunning ? "text-bio-300" : "text-bio-400"}`}>{tool.tool_name}</span>
         {badge && (
           <span className={`text-[9px] px-1.5 py-0.5 rounded border font-medium ${BADGE_COLORS[badge] ?? ""}`}>
             {badge}
           </span>
         )}
         <span className="text-gray-500 text-xs truncate flex-1">
-          {Object.entries(tool.tool_input)
-            .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
-            .join(", ")
-            .slice(0, 60)}
+          {isRunning
+            ? "running..."
+            : Object.entries(tool.tool_input)
+                .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+                .join(", ")
+                .slice(0, 60)}
         </span>
-        <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        {!isRunning && (
+          <svg
+            className={`w-4 h-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
       </button>
-      {open && (
+      {open && !isRunning && (
         <div className="px-3 pb-3 border-t border-gray-700">
           <div className="mt-2">
             <p className="text-xs text-gray-500 mb-1">Input</p>
