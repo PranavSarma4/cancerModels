@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # Core
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+      - STRUCTBIO_CACHE=/app/cache
+      # ElevenLabs
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}
+      - ELEVENLABS_MODEL=${ELEVENLABS_MODEL:-eleven_multilingual_v2}
+      # Databricks
+      - DATABRICKS_HOST=${DATABRICKS_HOST:-}
+      - DATABRICKS_TOKEN=${DATABRICKS_TOKEN:-}
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-mlruns}
+      # NVIDIA Nemotron
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
+      - NEMOTRON_MODEL=${NEMOTRON_MODEL:-nvidia/llama-3.1-nemotron-70b-instruct}
+      # TrueMarket
+      - TRUEMARKET_API_KEY=${TRUEMARKET_API_KEY:-}
+      - TRUEMARKET_API_SECRET=${TRUEMARKET_API_SECRET:-}
+      - TRUEMARKET_API_URL=${TRUEMARKET_API_URL:-https://api.truemarkets.co}
+      # Nia
+      - NIA_API_KEY=${NIA_API_KEY:-}
+      # ChimeraX
+      - CHIMERAX_PORT=9999
+    ports:
+      - "8000:8000"
+    volumes:
+      - pdb-cache:/app/cache
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pdb-cache:

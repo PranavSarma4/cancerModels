@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html style="height:100%;margin:0">
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #111827; }
+    #viewer { width: 100%; height: 100%; position: relative; }
+  </style>
+  <link rel="stylesheet" href="https://www.ebi.ac.uk/pdbe/pdb-component-library/css/pdbe-molstar-3.1.0.css">
+  <script type="text/javascript" src="https://www.ebi.ac.uk/pdbe/pdb-component-library/js/pdbe-molstar-plugin-3.1.0.js"></script>
+</head>
+<body>
+  <div id="viewer"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const pdbId = params.get('id');
+    if (pdbId) {
+      const viewerInstance = new PDBeMolstarPlugin();
+      viewerInstance.render(document.getElementById('viewer'), {
+        moleculeId: pdbId.toLowerCase(),
+        bgColor: { r: 17, g: 24, b: 39 },
+        hideControls: true,
+        hideCanvasControls: ['selection', 'animation', 'expand', 'controlToggle', 'controlInfo'],
+        sequencePanel: false,
+        landscape: true,
+        reactive: true,
+      });
+    }
+  </script>
+</body>
+</html>
