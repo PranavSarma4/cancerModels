@@ -223,25 +223,6 @@ User: Dock imatinib into BCR-ABL
 
 ---
 
-## Hackathon Track Targeting
-
-| Track | How We Win |
-|-------|------------|
-| Best Overall Hack | Full-stack AI + biology + 7 sponsor integrations |
-| Best AI Automation | ProteoAgent automates multi-step protein analysis workflows |
-| Best Consumer Track | Voice narration + beautiful UI makes biology accessible |
-| Best use of Claude Agent SDK | `claude_agent.py` — all 25 tools via `@tool` decorator |
-| Best use of ElevenLabs | Voice narration of protein analysis with streaming TTS |
-| Best use of Databricks | MLflow experiment tracking for docking campaigns |
-| Best use of Nemotron | Protein summarization + structure comparison via Nemotron-70B |
-| Best use of TrueMarket API | Pharma market intel linking drug targets to companies |
-| Best use of Nia | Research paper search + bioinformatics docs for context |
-| Best UI/UX | Dark biotech theme, Mol* 3D viewer, audio player, tool cards |
-| Most Technical | Pocket detection, docking, MCP protocol, multi-model AI |
-| Most Creative | Structural biology + voice + markets = unique intersection |
-
----
-
 ## Project Structure
 
 ```
